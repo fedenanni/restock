@@ -1,0 +1,28 @@
+[project]
+name = "restock"
+version = "0.1.0"
+description = "Fill a weekly supermarket basket from a shopping list you control."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.13"
+dependencies = [
+    "playwright>=1.60.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+restock = "restock.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["restock"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ty>=0.0.58",
+]

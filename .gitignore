@@ -1,0 +1,28 @@
+# Persistent browser profile — holds your live Tesco session. NEVER commit.
+.browser-profile/
+
+# Captured live-page HTML/screenshots — contain personal order data.
+pages/
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Env variables
+.env
+
+# Your shopping list — personal data. Remove this line if you want it tracked.
+regulars.yaml
+
+# Cached order receipts — personal order data.
+.cache/
+
+# Amazon session profile — as sensitive as the Tesco one. NEVER commit.
+.browser-profile-amazon/
