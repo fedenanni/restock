@@ -9,7 +9,6 @@ Once, to set up:
 ```bash
 uv sync
 uv run restock login          # sign in to Tesco by hand; the session is saved
-uv run restock alexa-login    # sign in to Amazon, to read your Alexa list
 uv run restock scan -n 24     # build regulars.yaml from your last 24 orders
 ```
 
@@ -20,17 +19,29 @@ you don't want bought automatically.
 After that, the weekly run is one command:
 
 ```bash
-uv run restock shop --dry-run   # show the matches and the basket it would build
-uv run restock shop             # build it, then review and check out yourself
+uv run restock fill --dry-run   # show what it would add, touching nothing
+uv run restock fill             # add your `always` products
 ```
 
-`shop` reads your Alexa shopping list, matches each dictated item against your
-regulars, and fills the basket **once** with your `always` products plus
-whatever matched. Everything is decided before the basket is touched: filling
-first and matching afterwards would leave a half-built basket behind whenever
-matching failed.
-
 It never books a slot and never checks out. You review the basket and pay.
+
+### Optionally: your Alexa shopping list
+
+If you dictate things to Alexa during the week, `restock` can read that list
+and match each item against your regulars, so "milk" becomes the milk you
+actually buy. This is entirely optional — **everything above works without an
+Amazon account**, and so do `scan`, `update`, `variants` and `empty`.
+
+```bash
+uv run restock alexa-login      # once: sign in to Amazon
+uv run restock shop --dry-run   # show the matches and the basket it would build
+uv run restock shop             # build it
+```
+
+`shop` is `fill` plus the Alexa step: it fills the basket **once** with your
+`always` products plus whatever matched. Everything is decided before the
+basket is touched, because filling first and matching afterwards would leave a
+half-built basket behind whenever matching failed.
 
 ## How it fits together
 
@@ -41,8 +52,8 @@ Three stages, with a file you control in the middle:
 2. **You edit that file.** Product availability and packaging change
    constantly, so the list is somewhere you can see and correct what the
    automation is about to buy — rather than discovering it at the door.
-3. **`shop`** reads your Alexa list, matches it to the file, and fills the
-   basket. (`fill` does the same without the Alexa step.)
+3. **`fill`** puts that file in your basket. (`shop` is the same plus the
+   optional Alexa step.)
 
 ## Setup
 
@@ -56,32 +67,38 @@ uv run playwright install chromium   # only if you don't have Google Chrome
 The tool prefers your real Chrome — Tesco's bot detection is markedly
 friendlier to it — and falls back to Playwright's bundled Chromium.
 
-Matching needs the [`claude` CLI](https://claude.com/claude-code) on your PATH.
-It runs on your existing Claude Code login; no API key required.
+Only the optional `shop` command needs anything further: the
+[`claude` CLI](https://claude.com/claude-code) on your PATH, for matching. It
+runs on your existing Claude Code login, with no API key. Nothing else in the
+tool uses it.
 
 ## Commands
 
 ```bash
 uv run restock login              # sign in to Tesco; session saved to .browser-profile/
-uv run restock alexa-login        # sign in to Amazon; separate profile
-uv run restock alexa-list         # print your Alexa shopping list
 
 uv run restock scan -n 24         # build regulars.yaml from your last 24 orders
 uv run restock scan --force       # regenerate it, discarding your edits
 uv run restock update             # append newly frequent products, keeping edits
 uv run restock variants           # products that look like a choice between sizes
 
-uv run restock shop --dry-run     # the weekly run, showing what it would do
-uv run restock shop               # the weekly run
-uv run restock shop --since 0     # ...ignoring the 14-day age limit
-
-uv run restock fill --dry-run     # just the regulars, no Alexa step
+uv run restock fill --dry-run     # show what would be added, touching nothing
 uv run restock fill               # add the `always` products
 uv run restock fill --all         # add everything on the list
 uv run restock fill --limit 5     # only the first 5, for testing
 
 uv run restock empty --yes        # clear the basket again
 uv run restock probe orders       # dump live page HTML when selectors drift
+```
+
+Needing an Amazon account, all optional:
+
+```bash
+uv run restock alexa-login        # sign in to Amazon; separate profile
+uv run restock alexa-list         # print your Alexa shopping list
+uv run restock shop --dry-run     # fill, plus the Alexa matching step
+uv run restock shop               # the weekly run, with Alexa
+uv run restock shop --since 0     # ...ignoring the 14-day age limit
 ```
 
 `-v` / `--verbose` goes before the subcommand: `uv run restock -v shop`.
@@ -182,6 +199,9 @@ left alone.
 No command ever books a delivery slot or checks out.
 
 ## The Alexa shopping list
+
+This whole section is optional — skip it if you don't use Alexa; every other
+command works without an Amazon account.
 
 Amazon turned off List Skills and the List Management REST API on 1 July 2024,
 so there is no supported API for reading Alexa lists. What still exists is the
